@@ -7,6 +7,8 @@ import requests
 
 BOT_TOKEN = getenv('TG_BOT_TOKEN')
 CHAT_ID = getenv('CHAT_ID')
+ALLOW_IPS = {x for x in getenv('ALLOW_IPS', '').split(';') if x}
+ALLOW_USER_NAMES = {x for x in getenv('ALLOW_USER_NAMES', '').split(';') if x}
 
 
 class Monitor:
@@ -30,11 +32,22 @@ class Monitor:
         )
         response.raise_for_status()
 
+    def check_who_connected(self):
+        for user in psutil.users():
+            incorrect_ip = f'Не разрешенный ip' if user.host not in ALLOW_IPS else ''
+            incorrect_user_name = 'Не разрешенное user_name' if user.name not in ALLOW_USER_NAMES else ''
+            if incorrect_ip or incorrect_user_name:
+                self.send_tg_notification(
+                    f'ВНИМАНИЕ! Сервер {self.server_name} взломан.\n'
+                    f'Подключился: {user}\n{incorrect_user_name}\n{incorrect_ip}'
+                )
+
     def check(self):
         self.send_notification_if_alert(psutil.cpu_percent(interval=self.interval), 'CPU')
         self.send_notification_if_alert(psutil.virtual_memory().percent, 'MEMORY')
         self.send_notification_if_alert(psutil.disk_usage('/').percent, 'DISK')
         self.send_notification_if_alert(psutil.getloadavg()[2], 'LOAD_AVERAGE_15_MIN', deadline=psutil.cpu_count() + 1)
+        self.check_who_connected()
 
 
 if __name__ == '__main__':
