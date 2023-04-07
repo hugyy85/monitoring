@@ -7,8 +7,8 @@ import requests
 
 BOT_TOKEN = getenv('TG_BOT_TOKEN')
 CHAT_ID = getenv('CHAT_ID')
-ALLOW_IPS = {x for x in getenv('ALLOW_IPS', '').split(';') if x}
-ALLOW_USER_NAMES = {x for x in getenv('ALLOW_USER_NAMES', '').split(';') if x}
+ALLOW_IPS = {x for x in getenv('ALLOW_IPS', '').split(',') if x}
+ALLOW_USER_NAMES = {x for x in getenv('ALLOW_USER_NAMES', '').split(',') if x}
 
 
 class Monitor:
